@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Warning: for now, always assumes that token1 is ETH! Change the code for pools where false!
+
 import os
 
 YEAR = os.getenv("YEAR")
@@ -11,7 +13,10 @@ if POOL is None or len(POOL) == 0:
     POOL = "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640" # USDC/ETH 0.05%
 POOL = POOL.lower()
 
-decimals = 6 # for USDC
+DECIMALS = os.getenv("DECIMALS")
+if DECIMALS is None or len(DECIMALS) == 0:
+    DECIMALS = 6 # for USDC
+DECIMALS = int(DECIMALS)
 
 # change this to get v2 swaps
 VERSION = os.getenv("VERSION")
@@ -22,6 +27,8 @@ except:
 if VERSION not in [2, 3]:
     print("Uniswap v2 or v3 supported")
     exit(-1)
+
+print(f"using pool {POOL} on Uniswap v{VERSION}, year {YEAR}, token0 decimals {DECIMALS}")
 
 self_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(self_dir, "data", f"uniswap-v{VERSION}-swaps", YEAR)
@@ -65,12 +72,13 @@ def account_for_mev(eth_buyers, eth_sellers, trades):
     for address in traders:
         trades[False] += eth_buyers.get(address, 0) + eth_sellers.get(address, 0)
 
+
 def classify_trades(trades, data):
     current_block = None # start from a fresh block
     eth_buyers = {}
     eth_sellers = {}
 
-    # token0: USDC, token1: ETH
+    # token0: e.g. USDC, token1: ETH
     for row in data:
         if VERSION == 2:
             (_, block, _, amount0_in, amount1_in, amount0_out, amount1_out, address, _) = row
@@ -111,11 +119,14 @@ def classify_trades(trades, data):
 def main():
     # {True: sandwich_volume, False: other_trader_volume}
     trades = {True: 0, False: 0}
+    days_tracked = 0
     for filename in sorted(os.listdir(data_dir)):
         if "-swaps.csv" in filename:
             data = load_csv(filename)
             classify_trades(trades, data)
-    print(f"total USDC volume: {sum(trades.values()) / (10 ** decimals) * 1e-6:.0f} million")
+            days_tracked += 1
+    print(f"{days_tracked} days tracked")
+    print(f"total token0 volume: {sum(trades.values()) / (10 ** DECIMALS) * 1e-6:.2f} million")
     sandwich_proportion = trades[True] / sum(trades.values())    
     print(f"sandwich volume proportion: {100*sandwich_proportion:.2f}%")
     print("top sandwich traders by num tx:")
