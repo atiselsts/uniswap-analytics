@@ -24,7 +24,7 @@ if VERSION not in [2, 3]:
     exit(-1)
 
 self_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(os.path.dirname(os.path.dirname(self_dir)), "data", f"uniswap-v{VERSION}-swaps", YEAR)
+data_dir = os.path.join(self_dir, "data", f"uniswap-v{VERSION}-swaps", YEAR)
 
 not_sandwich = [
     "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", # universal router
