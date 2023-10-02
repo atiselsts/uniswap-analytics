@@ -79,7 +79,7 @@ def load_csv(filename):
     return result
 
 
-def classify_trades(trades, data):
+def classify_trades(data):
     current_block = None # start from a fresh block
 
     block_volume_token0_in = 0
@@ -128,7 +128,7 @@ def main():
     for filename in sorted(os.listdir(data_dir)):
         if "-swaps.csv" in filename:
             data = load_csv(filename)
-            day_total, day_maybe_arb = classify_trades(trades, data)
+            day_total, day_maybe_arb = classify_trades(data)
             total += day_total
             maybe_arb += day_maybe_arb
             days_tracked += 1
