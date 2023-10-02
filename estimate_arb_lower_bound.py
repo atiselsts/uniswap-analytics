@@ -122,11 +122,9 @@ def classify_trades(trades, data):
 
 
 def main():
-    # {True: sandwich_volume, False: other_trader_volume}
-    trades = {True: 0, False: 0}
-    days_tracked = 0
     total = 0
     maybe_arb = 0
+    days_tracked = 0
     for filename in sorted(os.listdir(data_dir)):
         if "-swaps.csv" in filename:
             data = load_csv(filename)
