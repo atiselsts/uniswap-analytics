@@ -113,6 +113,7 @@ arb_addresses = set([
     "0x0ef8b4525c69bfa7bdece3ab09f95bbf0944b783",
     "0x6db01031355fbf8eea0c06a5d56217ba1967f0df",
     "0x6980a47bee930a4584b09ee79ebe46484fbdbdd0",
+    "0xf70a5d557976191e4dac37a425b6432773511b79",
 ])
 
 internal_addresses = set([
@@ -265,10 +266,11 @@ def main():
             day_stats = classify_trades(data)
             print(day_stats)
             all_stats.append(day_stats)
-            if len(all_stats) >= 20:
-                break
+#            if len(all_stats) >= 20:
+#                break
 
     coeff    = 1e12
+#    coeff    = 1e8
     sandwich = [u[0] / coeff for u in all_stats]
     arb      = [u[1] / coeff for u in all_stats]
     retail   = [u[2] / coeff for u in all_stats]
@@ -279,28 +281,29 @@ def main():
     pl.figure()
     pl.plot([], [], color ='darkgreen', label ='Retail')
     pl.plot([], [], color ='orange', label='Arbitrage')      
-    pl.plot([], [], color ='red', label ='Sandwich')
-    pl.plot([], [], color ='grey', label ='Other')
+    pl.plot([], [], color ='red', label='Sandwich')
+    pl.plot([], [], color ='grey', label='Unclassified')
 
     x = range(len(all_stats))
     pl.stackplot(x, retail, arb, sandwich, other, colors=C)
     pl.xlabel("Day")
     pl.ylabel("Volume, $ million")
+#    pl.ylabel("Volume, BTC")
     pl.legend()
     pl.show()
     pl.close()
 
     # pie chart
-    fig, ax = plt.subplots()
+    fig, ax = pl.subplots()
     sizes = [sum(retail), sum(arb), sum(sandwich), sum(other)]
-    labels = ["Retail", "Arb", "Sandwich", "Other"]
+    labels = ["Retail", "Arb", "Sandwich", "Unclassified"]
     ax.pie(sizes, labels=labels, autopct='%1.1f%%',
            pctdistance=1.25, labeldistance=.6, colors=C)
     pl.show()
 
 
     # get proportional plots
-    # (don't do this, this is completely wrong!!!)
+    # (don't seriously do this, this can get completely wrong visually!!!)
     sandwich = [u[0] / coeff / sum(u) for u in all_stats]
     arb      = [u[1] / coeff / sum(u) for u in all_stats]
     retail   = [u[2] / coeff / sum(u) for u in all_stats]
