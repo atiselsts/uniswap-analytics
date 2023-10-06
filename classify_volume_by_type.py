@@ -265,7 +265,7 @@ def main():
             day_stats = classify_trades(data)
             print(day_stats)
             all_stats.append(day_stats)
-            if len(all_stats) >= 100:
+            if len(all_stats) >= 20:
                 break
 
     coeff    = 1e12
@@ -274,6 +274,8 @@ def main():
     retail   = [u[2] / coeff for u in all_stats]
     other    = [u[3] / coeff for u in all_stats]
 
+    C = ['darkgreen', 'orange', 'red', 'grey']
+
     pl.figure()
     pl.plot([], [], color ='darkgreen', label ='Retail')
     pl.plot([], [], color ='orange', label='Arbitrage')      
@@ -281,12 +283,21 @@ def main():
     pl.plot([], [], color ='grey', label ='Other')
 
     x = range(len(all_stats))
-    pl.stackplot(x, retail, arb, sandwich, other, colors =['darkgreen', 'orange', 'red', 'grey'])
+    pl.stackplot(x, retail, arb, sandwich, other, colors=C)
     pl.xlabel("Day")
     pl.ylabel("Volume, $ million")
     pl.legend()
     pl.show()
     pl.close()
+
+    # pie chart
+    fig, ax = plt.subplots()
+    sizes = [sum(retail), sum(arb), sum(sandwich), sum(other)]
+    labels = ["Retail", "Arb", "Sandwich", "Other"]
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%',
+           pctdistance=1.25, labeldistance=.6, colors=C)
+    pl.show()
+
 
     # get proportional plots
     # (don't do this, this is completely wrong!!!)
@@ -295,7 +306,7 @@ def main():
     retail   = [u[2] / coeff / sum(u) for u in all_stats]
     other    = [u[3] / coeff / sum(u) for u in all_stats]
 
-    pl.stackplot(x, retail, arb, sandwich, other, colors =['darkgreen', 'orange', 'red', 'grey'])
+    pl.stackplot(x, retail, arb, sandwich, other, colors=C)
     pl.xlabel("Day")
     pl.ylabel("Volume, $ million")
     pl.legend()
