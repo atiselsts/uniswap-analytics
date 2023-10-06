@@ -45,8 +45,11 @@ not_sandwich = [
     "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", # universal router
     "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b", # old uni router
     "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45", # router 2
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d", # router 2 v02
     "0x1111111254fb6c44bac0bed2854e76f90643097d", # 1inch
+    "0x1111111254eeb25477b68fb85ed929f73a960582", # 1inch
     "0xdef1c0ded9bec7f1a1670819833240f027b25eff", # 0x proxy
+    "0x74de5d4fcbf63e00296fd95d33236b9794016631", # AirSwap
 ]
 
 num_sandwich_tx = {}
