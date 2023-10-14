@@ -31,7 +31,6 @@
 
 import os
 import matplotlib.pyplot as pl
-#import pandas as pd
 
 YEAR = os.getenv("YEAR")
 if YEAR is None or len(YEAR) == 0:
@@ -54,6 +53,10 @@ print(f"using pool {POOL} on Uniswap v{VERSION}, year {YEAR}, token0 decimals {D
 
 self_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(self_dir, "data", f"uniswap-v{VERSION}-swaps", YEAR)
+
+
+# metamask swap router
+# 0x881D40237659C251811CEC9c364ef91dC08D300C (Metamask: Swap Router
 
 trader_addresses = set([
     "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", # universal router
