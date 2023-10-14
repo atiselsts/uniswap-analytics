@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
 #
+# WARNING: this massively overestimates the arbitrage flow. Check the address-based
+# classification in the file `classify_volume_by_type.py` instead!
+#
+
+#
 # This script estimates upper bound of toxic arbitrage volume proportion in a specific Uniswap pool.
 # "Toxic" arbitrage is defined as external-source driven arbibtrage, as it's likely to reslt in negative markout.
 #
