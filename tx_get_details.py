@@ -9,11 +9,11 @@ import random
 
 from web3 import Web3
 
-URL = os.getenv("INFURA_URL_MAINNET")
+#URL = os.getenv("INFURA_URL_MAINNET")
+URL = os.getenv("ALCHEMY_URL")
 web3 = Web3(Web3.WebsocketProvider(URL))
 
-
-NUM_TX = 1000
+NUM_TX = 20000
 
 YEAR = os.getenv("YEAR")
 if YEAR is None or len(YEAR) == 0:
@@ -65,7 +65,11 @@ def main():
     tx_subset = random.sample(txs, NUM_TX)
     with open(f"tx-details-v{VERSION}-{YEAR}-{POOL}.csv", "w") as outf:   
         for tx, in tx_subset:
-            result = tx_get_details(tx)
+            try:
+                result = tx_get_details(tx)
+            except Exception as ex:
+                print("Exception:", ex)
+                continue
             s = ",".join([str(u) for u in result])
             outf.write(s)
             outf.write("\n")

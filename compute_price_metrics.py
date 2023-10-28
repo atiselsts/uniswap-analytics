@@ -32,8 +32,8 @@ def main():
     print(data)
     num_days = len(data['Open'])
     sigma, mu = get_sigma_and_mu(data)
-#    sigma *= sqrt(DAYS_IN_YEAR)
-#    mu *= DAYS_IN_YEAR
+    sigma *= sqrt(DAYS_IN_YEAR)
+    mu *= DAYS_IN_YEAR
 
     lvr = get_lvr(sigma, 0.0)
     lvr_with_mu = get_lvr(sigma, mu)

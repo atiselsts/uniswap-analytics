@@ -296,6 +296,21 @@ def main():
     pl.show()
     pl.close()
 
+
+    pl.figure()
+    pl.plot([], [], color ='darkgreen', label ='Retail')
+
+    x = range(len(all_stats))
+    pl.stackplot(x, retail, colors=C[:1])
+    pl.xlabel("Day")
+    pl.ylabel("Volume, $ million")
+#    pl.ylabel("Volume, BTC")
+    pl.legend()
+    pl.show()
+    pl.close()
+
+
+    
     # pie chart
     fig, ax = pl.subplots()
     sizes = [sum(retail), sum(arb), sum(sandwich), sum(other)]
