@@ -118,11 +118,12 @@ def get_events(client, date):
                     assert len(data) >= 322
                     continue
                 event_type = 3
-                amount0 = int(data[:66], 16)
-                amount1 = int(data[66:130], 16)
+                amount0 = signed_int(data[:66])
+                amount1 = signed_int(data[66:130])
                 price = int(data[130:194], 16)
                 liquidity = int(data[194:258], 16)
-                price_tick = signed_int(data[258:322])
+                tick_lower = signed_int(data[258:322])
+                tick_upper = tick_lower
             elif topic in INIT_TOPIC:
                 # print("init", row)
                 event_type = 4
@@ -130,7 +131,6 @@ def get_events(client, date):
                 tick_lower = signed_int(data[66:130])
                 tick_upper = tick_lower
             elif topic == FLASH_TOPIC:
-                print("flash", row)
                 event_type = 5
                 if len(data) < 258:
                     # not a Uniswap event?
@@ -160,7 +160,6 @@ def main():
     for d in dates:
         print(d)
         get_events(client, d)
-        break
 
 
 if __name__ == "__main__":

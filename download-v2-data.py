@@ -58,7 +58,7 @@ def get_events(client, date):
     filename = os.path.join(DIR, year, date + "-events.csv")
     if os.access(filename, os.R_OK):
         print(f"file {filename} already exists")
-        #return False
+        return False
 
     query = QUERY.format(date, SYNC_TOPIC, SWAP_TOPIC, MINT_TOPIC, BURN_TOPIC)
     query_job = client.query(query)
