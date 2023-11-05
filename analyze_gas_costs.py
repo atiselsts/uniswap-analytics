@@ -8,6 +8,7 @@ import os
 import random
 import matplotlib.pyplot as pl
 import numpy as np
+from ing_theme_matplotlib import mpl_style
 
 POOLS = [
     (2, "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc", "v2 USDC/ETH", 0.003),
@@ -34,6 +35,7 @@ def load_csv(filename):
 
 def main():
     random.seed(12345) # make it repeatable
+    mpl_style(True)
 
     labels = [u[2] for u in POOLS]
     gas_usages = []
@@ -44,6 +46,12 @@ def main():
         txs = load_csv(filename)
         gas_usages.append([int(u[2]) for u in txs])
         gas_prices.append([int(u[3])/1e9 for u in txs])
+
+        txs_with_costs = [(int(u[2]), u[-1])  for u in txs]
+        txs_with_costs.sort()
+        with open(f"tx-details-v{version}-{YEAR}-{pool}-sorted.csv", "w") as f:
+            for cost, hash in txs_with_costs:
+                f.write(f"{cost},{hash}\n")
 
     pl.figure(figsize=(6, 4))
     for gas, lab in zip(gas_usages, labels):

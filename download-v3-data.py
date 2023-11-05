@@ -37,6 +37,7 @@ SWAP_TOPIC = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67
 MINT_TOPIC = "0x7a53080ba414158be7ec69b987b5fb7d07dee101fe85488f0853ae16239d0bde"
 BURN_TOPIC = "0x0c396cd989a39f4459b5fa1aed6a9a8dcdbc45908acfd67e028cd568da98982c"
 FLASH_TOPIC = "0xbdbdb71d7860376ba52b25a5028beea23581364a40522f6bcfb86bb1f2dca633"
+COLLECT_TOPIC = "0x70935338e69775456a85ddef226c395fb668b63fa0115f5f20610b388e6ca9c0"
 
 QUERY = """
 SELECT
@@ -51,6 +52,22 @@ FROM `bigquery-public-data.crypto_ethereum.logs`
 WHERE
   DATE(block_timestamp) = '{0}'
   AND (topics[SAFE_OFFSET(0)] = '{1}' OR topics[SAFE_OFFSET(0)] = '{2}' OR topics[SAFE_OFFSET(0)] = '{3}' OR topics[SAFE_OFFSET(0)] = '{4}' OR topics[SAFE_OFFSET(0)] = '{5}')
+ORDER BY block_timestamp, log_index ASC
+"""
+
+QUERY_NEW = """
+SELECT
+  block_timestamp
+  ,block_number
+  ,transaction_hash
+  ,address
+  ,data
+  ,log_index
+  ,topics
+FROM `bigquery-public-data.crypto_ethereum.logs`
+WHERE
+  DATE(block_timestamp) = '{0}'
+  AND (topics[SAFE_OFFSET(0)] = '{6}')
 ORDER BY block_timestamp, log_index ASC
 """
 
@@ -70,7 +87,7 @@ def get_events(client, date):
         print(f"file {filename} already exists")
         return False
 
-    query = QUERY.format(date, INIT_TOPIC, SWAP_TOPIC, MINT_TOPIC, BURN_TOPIC, FLASH_TOPIC)
+    query = QUERY.format(date, INIT_TOPIC, SWAP_TOPIC, MINT_TOPIC, BURN_TOPIC, FLASH_TOPIC, COLLECT_TOPIC)
     query_job = client.query(query)
     iterator = query_job.result(timeout=300)
     with open(filename, "w") as f:
@@ -142,6 +159,12 @@ def get_events(client, date):
                 # keep track of just the the fee amounts
                 amount0 = int(data[130:194], 16)
                 amount1 = int(data[194:258], 16)
+            elif topic == COLLECT_TOPIC:
+                event_type = 6
+                tick_lower = signed_int(row[6][2])
+                tick_upper = signed_int(row[6][3])
+                amount0 = int(data[66:130], 16)
+                amount1 = int(data[130:194], 16)
 
             s = [str(u) for u in [timestamp, block, pool, tx_hash, event_type, price, tick_lower, tick_upper, liquidity, amount0, amount1]]
             f.write(",".join(s) + "\n")

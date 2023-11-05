@@ -5,7 +5,7 @@
 #
 # Sandwich volume is defined as:
 #  1) Has multiple tx in a single block, and at least one tx in each direction.
-#  2) The sender is is  a known router or aggregator address.
+#  2) The sender is not a known router or aggregator address.
 #
 
 # Warning: for now, always assumes that token1 is ETH! Change the code for pools where false!
