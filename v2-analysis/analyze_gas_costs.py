@@ -2,6 +2,7 @@
 
 #
 # This script analyzes transaction stats by sampling a random subset of tx
+# from all transactions swapping through a given pool.
 #
 
 import os

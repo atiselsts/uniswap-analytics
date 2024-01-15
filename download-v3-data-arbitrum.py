@@ -7,30 +7,30 @@
 #
 # Attention: Google BigQuery access is required!
 # Only Ethereum supported for now.
-# (Polygon and Arbitrum DB also exists and could be easily queried instead.)
+# (Polygon DB also exists and could be easily queried instead.)
 #
 
 import os
 from google.cloud import bigquery
 import pandas as pd
-from datetime import date, timedelta, datetime
+#from datetime import date, timedelta, datetime
 
-DIR = os.path.join("data", f"uniswap-v3-all")
+DIR = os.path.join("data", f"uniswap-arb-v3-all")
 
-YEAR = os.getenv("YEAR")
-print(YEAR)
-if YEAR is None or len(YEAR) == 0:
-    YEAR = "2021"
-YEAR = int(YEAR)
+#YEAR = os.getenv("YEAR")
+#print(YEAR)
+#if YEAR is None or len(YEAR) == 0:
+#    YEAR = "2021"
+#YEAR = int(YEAR)
 
-START_DATE = date(YEAR, 1, 1)
-if YEAR == 2021:
-    START_DATE = date(YEAR, 5, 4)
+#START_DATE = date(YEAR, 1, 1)
+#if YEAR == 2021:
+#    START_DATE = date(YEAR, 5, 4)
 
-if YEAR == date.today().year:
-    END_DATE = date.today() - timedelta(days=1)
-else:
-    END_DATE = date(YEAR, 12, 31)
+#if YEAR == date.today().year:
+#    END_DATE = date.today() - timedelta(days=1)
+#else:
+#    END_DATE = date(YEAR, 12, 31)
 
 INIT_TOPIC = "0x98636036cb66a9c19a37435efc1e90142190214e8abeb821bdba3f2990dd4c95"
 SWAP_TOPIC = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
@@ -41,34 +41,19 @@ COLLECT_TOPIC = "0x70935338e69775456a85ddef226c395fb668b63fa0115f5f20610b388e6ca
 
 QUERY = """
 SELECT
-  block_timestamp
-  ,block_number
+  block_number
   ,transaction_hash
   ,address
   ,data
   ,log_index
   ,topics
-FROM `bigquery-public-data.crypto_ethereum.logs`
+  ,removed
+FROM `bigquery-public-data.goog_blockchain_arbitrum_one_us.logs`
 WHERE
-  DATE(block_timestamp) = '{0}'
-  AND (topics[SAFE_OFFSET(0)] = '{1}' OR topics[SAFE_OFFSET(0)] = '{2}' OR topics[SAFE_OFFSET(0)] = '{3}' OR topics[SAFE_OFFSET(0)] = '{4}' OR topics[SAFE_OFFSET(0)] = '{5}' OR topics[SAFE_OFFSET(0)] = '{6}')
-ORDER BY block_timestamp, log_index ASC
-"""
-
-QUERY_NEW = """
-SELECT
-  block_timestamp
-  ,block_number
-  ,transaction_hash
-  ,address
-  ,data
-  ,log_index
-  ,topics
-FROM `bigquery-public-data.crypto_ethereum.logs`
-WHERE
-  DATE(block_timestamp) = '{0}'
-  AND (topics[SAFE_OFFSET(0)] = '{6}')
-ORDER BY block_timestamp, log_index ASC
+  block_number >= {0}
+  AND NOT removed
+  AND (topics[SAFE_OFFSET(0)] = '{2}' OR topics[SAFE_OFFSET(0)] = '{3}' OR topics[SAFE_OFFSET(0)] = '{4}' OR topics[SAFE_OFFSET(0)] = '{5}' OR topics[SAFE_OFFSET(0)] = '{6}' OR topics[SAFE_OFFSET(0)] = '{7}')
+ORDER BY block_number, log_index ASC
 """
 
 COMPLEMENT = 1 << 256
@@ -80,14 +65,23 @@ def signed_int(s):
         return u
     return u - COMPLEMENT 
 
-def get_events(client, date):
-    year = date[:4]
-    filename = os.path.join(DIR, year, date + "-events.csv")
-    if os.access(filename, os.R_OK):
-        print(f"file {filename} already exists")
-        return False
+def get_events(client, million):
+#    year = date[:4]
+#    filename = os.path.join(DIR, year, date + "-events-arb.csv")
+#    if os.access(filename, os.R_OK):
+#        print(f"file {filename} already exists")
+#        return False
 
-    query = QUERY.format(date, INIT_TOPIC, SWAP_TOPIC, MINT_TOPIC, BURN_TOPIC, FLASH_TOPIC, COLLECT_TOPIC)
+    filename = os.path.join(DIR, f"events-arb-{million}.csv")
+
+    end_block = million * 1_000_000
+    start_block = end_block - 1_000_000
+
+    query = QUERY.format(start_block, end_block, INIT_TOPIC, SWAP_TOPIC, MINT_TOPIC,
+                         BURN_TOPIC, FLASH_TOPIC, COLLECT_TOPIC)
+#    print(query)
+#    return
+
     query_job = client.query(query)
     iterator = query_job.result(timeout=300)
     with open(filename, "w") as f:
@@ -95,12 +89,12 @@ def get_events(client, date):
         f.write(",".join(s) + "\n")
 
         for row in iterator:
-            timestamp = int(round(row[0].timestamp()))
-            block = row[1]
-            tx_hash = row[2]
-            pool = row[3]
-            data = row[4]
-            topic = row[6][0]
+            timestamp = 0 #int(round(row[0].timestamp()))
+            block = row[0]
+            tx_hash = row[1]
+            pool = row[2]
+            data = row[3]
+            topic = row[5][0]
 
             # sqrtPriceX96
             price = 0
@@ -118,16 +112,16 @@ def get_events(client, date):
                 liquidity = int(data[66:130], 16)
                 amount0 = int(data[130:194], 16)
                 amount1 = int(data[194:258], 16)
-                tick_lower = signed_int(row[6][2])
-                tick_upper = signed_int(row[6][3])
+                tick_lower = signed_int(row[5][2])
+                tick_upper = signed_int(row[5][3])
             elif topic == BURN_TOPIC:
                 #print("burn", row)
                 event_type = 2
                 liquidity = int(data[:66], 16)
                 amount0 = int(data[66:130], 16)
                 amount1 = int(data[130:194], 16)
-                tick_lower = signed_int(row[6][2])
-                tick_upper = signed_int(row[6][3])
+                tick_lower = signed_int(row[5][2])
+                tick_upper = signed_int(row[5][3])
             elif topic == SWAP_TOPIC:
                 if len(data) < 322:
                     # not a Uniswap event?
@@ -161,8 +155,8 @@ def get_events(client, date):
                 amount1 = int(data[194:258], 16)
             elif topic == COLLECT_TOPIC:
                 event_type = 6
-                tick_lower = signed_int(row[6][2])
-                tick_upper = signed_int(row[6][3])
+                tick_lower = signed_int(row[5][2])
+                tick_upper = signed_int(row[5][3])
                 amount0 = int(data[66:130], 16)
                 amount1 = int(data[130:194], 16)
 
@@ -172,17 +166,21 @@ def get_events(client, date):
 
 
 def main():
-    os.makedirs(os.path.join(DIR, str(YEAR)), exist_ok=True)
+#    os.makedirs(os.path.join(DIR, str(YEAR)), exist_ok=True)
 
     client = bigquery.Client()
-    end_date = END_DATE
-    if end_date is None:
-        end_date = datetime.today() - timedelta(days=1)
-    dates = pd.date_range(START_DATE, end_date, freq='d')
-    dates = [d.strftime('%Y-%m-%d') for d in dates]
-    for d in dates:
-        print(d)
-        get_events(client, d)
+
+#    for million in range():
+#    end_date = END_DATE
+#    if end_date is None:
+#        end_date = datetime.today() - timedelta(days=1)
+#    dates = pd.date_range(START_DATE, end_date, freq='d')
+#    dates = [d.strftime('%Y-%m-%d') for d in dates]
+#   for d in dates:
+#        print(d)
+#        get_events(client, d)
+#        get_events(client, million)
+    get_events(client, 158)
 
 
 if __name__ == "__main__":
