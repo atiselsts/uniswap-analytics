@@ -32,6 +32,10 @@ if YEAR == date.today().year:
 else:
     END_DATE = date(YEAR, 12, 31)
 
+# to match gauntlet
+START_DATE = date(2023, 1, 1)
+END_DATE = date(2023, 12, 31)
+
 V3_SWAP_TOPIC = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
 V3_CREATE_POOL_TOPIC = "0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118"
 V3_FACTORY = "0x1f98431c8ad98523631ae4a59f267346ea31f984"
@@ -71,6 +75,7 @@ SELECT
     ,parsed.amount0 AS `amount0`
     ,parsed.amount1 AS `amount1`
     ,parsed.recipient AS `recipient`
+    ,parsed.sender AS `sender`
 FROM parsed_logs
 ORDER BY block_timestamp, log_index ASC
 """
@@ -123,7 +128,7 @@ def get_v3_swaps(client, date):
     query_job = client.query(query)
     iterator = query_job.result(timeout=300)
     with open(filename, "w") as f:
-        s = ["timestamp", "block", "pool", "amount0", "amount1", "to", "tx_hash"]
+        s = ["timestamp", "block", "pool", "amount0", "amount1", "to", "sender", "tx_hash"]
         f.write(",".join(s) + "\n")
 
         for row in iterator:
@@ -134,7 +139,8 @@ def get_v3_swaps(client, date):
             amount0 = row[4]
             amount1 = row[5]
             to = row[6]
-            s = [str(u) for u in [timestamp, block, pool, amount0, amount1, to, tx_hash]]
+            sender = row[7]
+            s = [str(u) for u in [timestamp, block, pool, amount0, amount1, to, sender, tx_hash]]
             f.write(",".join(s) + "\n")
     return True
 

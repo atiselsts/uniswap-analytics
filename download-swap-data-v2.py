@@ -70,6 +70,7 @@ SELECT
     ,parsed.amount0Out AS `amount0Out`
     ,parsed.amount1Out AS `amount1Out`
     ,parsed.to AS `receiver`
+    ,parsed.sender AS `sender`
 FROM parsed_logs
 ORDER BY block_timestamp, log_index ASC
 """
@@ -120,7 +121,7 @@ def get_v2_swaps(client, date):
     query_job = client.query(query)
     iterator = query_job.result(timeout=300)
     with open(filename, "w") as f:
-        s = ["timestamp", "block", "pool", "amount0_in", "amount1_in", "amount0_out", "amount1_out", "to", "tx_hash"]
+        s = ["timestamp", "block", "pool", "amount0_in", "amount1_in", "amount0_out", "amount1_out", "to", "tx_hash", "sender"]
         f.write(",".join(s) + "\n")
 
         for row in iterator:
@@ -133,8 +134,9 @@ def get_v2_swaps(client, date):
             amount0_out = row[6]
             amount1_out = row[7]
             to = row[8]
+            sender = row[9]
             s = [str(u) for u in [timestamp, block, pool, amount0_in, amount1_in,
-                                  amount0_out, amount1_out, to, tx_hash]]
+                                  amount0_out, amount1_out, to, sender, tx_hash]]
             f.write(",".join(s) + "\n")
     return True
 
