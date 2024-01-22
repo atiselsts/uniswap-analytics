@@ -393,37 +393,24 @@ def account_for_mev(block, eth_buyers, eth_sellers):
         volume = eth_buyers.get(address, 0) + eth_sellers.get(address, 0)
 
         if address in trader_addresses:
-            #v_buy = round(eth_buyers.get(address, 0) / 1e6)
-            #v_sell = round(eth_sellers.get(address, 0) / 1e6)
-            #if v_buy * v_sell > 100_000_000:
-            #    print("maybe sandwich:", block, address, v_buy, v_sell)
             core += volume
         elif address in arb_addresses:
-            #v_buy = round(eth_buyers.get(address, 0) / 1e6)
-            #v_sell = round(eth_sellers.get(address, 0) / 1e6)
-            #print("sandwich:", block, address, v_buy, v_sell)
             sandwich += volume
         elif address in internal_addresses:
             other += volume
         else:
             if volume > 1e11:
-                print("unknown sandwicher address:", address, volume / 1e6)
+                print("unknown large sandwicher address:", address, volume / 1e6)
             other += volume
 
     for address in other_traders:
         # classify based on address
         volume = eth_buyers.get(address, 0) + eth_sellers.get(address, 0)
-        v_buy = round(eth_buyers.get(address, 0) / 1e6)
-        v_sell = round(eth_sellers.get(address, 0) / 1e6)
-        is_large = (v_buy + v_sell) > 100_000
 
         if address in trader_addresses:
             core += volume
-            #if is_large:
-            #    print("trade:", block, address, v_buy, v_sell)
         elif address in arb_addresses:
             arb += volume
-            #print("arb:", block, address, v_buy, v_sell)
         else:
             other += volume
 
@@ -603,17 +590,12 @@ def main():
 
     for filename in sorted(os.listdir(data_dir)):
         if "-swaps.csv" in filename:
-            #if "2023-01-01" not in filename:
-            #    continue
             print(filename)
             data = load_csv(filename)
             days.append(filename.split("-swaps")[0])
             day_stats = classify_trades(data, unknowns)
             print(day_stats)
             all_stats.append(day_stats)
-
-#            if len(all_stats) >= 10:
-#                break
 
     print("unclassified traders:")
     unknowns = list(unknowns.items())
@@ -681,16 +663,6 @@ def main():
     pl.savefig(f"{YEAR}-protocol-classification-by-day-v{VERSION}.png", bbox_inches='tight')
     pl.close()
 
-    if 0:
-        pl.figure()
-        pl.plot([], [], color ='darkgreen', label ='Core')
-        x = range(len(all_stats))
-        pl.stackplot(x, core, colors=C[:1])
-        pl.xlabel("Day in 2023")
-        pl.ylabel("Core volume, $ million")
-        pl.legend()
-        pl.show()
-        pl.close()
 
     # pie chart
     fig, ax = pl.subplots()
