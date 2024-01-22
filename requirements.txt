@@ -1,0 +1,5 @@
+pandas
+numpy
+yfinance
+matplotlib
+ing-theme-matplotlib
