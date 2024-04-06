@@ -2,13 +2,11 @@
 
 This repository is a collection of scripts for Uniswap analytics.
 
-Currently there are:
-* `get_sandwich_stats.py` - analyze MEV sandwich volume in Uniswap v2 and v3 pools.
-
 ## Data sources
 
-The repository uses data from Google BigQuery.
-The data can be downloaded and saved locally to the disk using the scripts `download-swap-data-v2.py` and `download-swap-data-v3.py`.
+The repository uses mostly data from Google BigQuery.
+The data can be downloaded and saved locally to the disk using the scripts that have this pattern in their name: `download-*.py`. This is a relatively slow process and will take large amount of the disk space, since typically data about all Uniswap pools is downloaded.
+Afterwards the analytics scripts can be run.
 
 ## Important pools
 
