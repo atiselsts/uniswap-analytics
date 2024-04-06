@@ -9,7 +9,6 @@ import random
 
 from web3 import Web3
 
-#URL = os.getenv("INFURA_URL_MAINNET")
 URL = os.getenv("ALCHEMY_URL")
 web3 = Web3(Web3.WebsocketProvider(URL))
 
