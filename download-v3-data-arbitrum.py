@@ -5,32 +5,19 @@
 # - all Uniswap v3 initialize, mint, burn, swap and flash events
 # and stores them in CSV files on the disk.
 #
-# Attention: Google BigQuery access is required!
-# Only Ethereum supported for now.
-# (Polygon DB also exists and could be easily queried instead.)
+# For the Arbitrum blockchain
 #
 
 import os
 from google.cloud import bigquery
 import pandas as pd
-#from datetime import date, timedelta, datetime
+
+# Change this to collect more recent data
+MIN_BLOCK = 0
+MAX_BLOCK = 100_000_000
 
 DIR = os.path.join("data", f"uniswap-arb-v3-all")
 
-#YEAR = os.getenv("YEAR")
-#print(YEAR)
-#if YEAR is None or len(YEAR) == 0:
-#    YEAR = "2021"
-#YEAR = int(YEAR)
-
-#START_DATE = date(YEAR, 1, 1)
-#if YEAR == 2021:
-#    START_DATE = date(YEAR, 5, 4)
-
-#if YEAR == date.today().year:
-#    END_DATE = date.today() - timedelta(days=1)
-#else:
-#    END_DATE = date(YEAR, 12, 31)
 
 INIT_TOPIC = "0x98636036cb66a9c19a37435efc1e90142190214e8abeb821bdba3f2990dd4c95"
 SWAP_TOPIC = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
@@ -66,12 +53,6 @@ def signed_int(s):
     return u - COMPLEMENT 
 
 def get_events(client, million):
-#    year = date[:4]
-#    filename = os.path.join(DIR, year, date + "-events-arb.csv")
-#    if os.access(filename, os.R_OK):
-#        print(f"file {filename} already exists")
-#        return False
-
     filename = os.path.join(DIR, f"events-arb-{million}.csv")
 
     end_block = million * 1_000_000
@@ -79,9 +60,6 @@ def get_events(client, million):
 
     query = QUERY.format(start_block, end_block, INIT_TOPIC, SWAP_TOPIC, MINT_TOPIC,
                          BURN_TOPIC, FLASH_TOPIC, COLLECT_TOPIC)
-#    print(query)
-#    return
-
     query_job = client.query(query)
     iterator = query_job.result(timeout=300)
     with open(filename, "w") as f:
@@ -166,21 +144,9 @@ def get_events(client, million):
 
 
 def main():
-#    os.makedirs(os.path.join(DIR, str(YEAR)), exist_ok=True)
-
     client = bigquery.Client()
-
-#    for million in range():
-#    end_date = END_DATE
-#    if end_date is None:
-#        end_date = datetime.today() - timedelta(days=1)
-#    dates = pd.date_range(START_DATE, end_date, freq='d')
-#    dates = [d.strftime('%Y-%m-%d') for d in dates]
-#   for d in dates:
-#        print(d)
-#        get_events(client, d)
-#        get_events(client, million)
-    get_events(client, 158)
+    for million in range(MIN_BLOCK // 1_000_000, MAX_BLOCK // 1_000_000):
+        get_events(client, million)
 
 
 if __name__ == "__main__":
