@@ -3,3 +3,4 @@ numpy
 yfinance
 matplotlib
 ing-theme-matplotlib
+google-cloud-bigquery
